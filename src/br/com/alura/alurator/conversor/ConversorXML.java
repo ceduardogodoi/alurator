@@ -3,6 +3,8 @@ package br.com.alura.alurator.conversor;
 import java.lang.reflect.Field;
 import java.util.Collection;
 
+import br.com.alura.alurator.conversor.anotacao.NomeTagXml;
+
 public class ConversorXML {
 
 	public String converte(Object objeto) {
@@ -15,22 +17,33 @@ public class ConversorXML {
 
 				xmlBuilder.append("<lista>");
 
-				colecao.stream().forEach(o -> {
+				for (Object o : colecao) {
 					String xml = converte(o);
 					xmlBuilder.append(xml);
-				});
+				}
 
 				xmlBuilder.append("</lista>");
 			} else {
-				String nomeClasse = classeObjeto.getName();
+				NomeTagXml anotacaoClasse = classeObjeto.getDeclaredAnnotation(NomeTagXml.class);
+				
+				String nomeClasse =
+						anotacaoClasse == null
+						? classeObjeto.getName()
+						: anotacaoClasse.value();
 
 				xmlBuilder.append("<" + nomeClasse + ">");
 
-				for (Field f : classeObjeto.getDeclaredFields()) {
-					f.setAccessible(true);
+				for (Field atributo : classeObjeto.getDeclaredFields()) {
+					atributo.setAccessible(true);
 
-					String nomeAtributo = f.getName();
-					Object valorAtributo = f.get(objeto);
+					NomeTagXml anotacaoAtributo = atributo.getDeclaredAnnotation(NomeTagXml.class);
+					
+					String nomeAtributo =
+							anotacaoAtributo == null
+							? atributo.getName()
+							: anotacaoAtributo.value();
+							
+					Object valorAtributo = atributo.get(objeto);
 					
 					xmlBuilder.append("<" + nomeAtributo + ">");
 					xmlBuilder.append(valorAtributo);
